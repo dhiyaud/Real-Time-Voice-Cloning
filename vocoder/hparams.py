@@ -3,14 +3,11 @@ from synthesizer.hparams import hparams as _syn_hp
 
 # Audio settings------------------------------------------------------------------------
 # Match the values of the synthesizer
-
-speaker_embedding_size = 256
-
-sample_rate = 24000
-# n_fft = _syn_hp.n_fft
+sample_rate = _syn_hp.sample_rate
+n_fft = _syn_hp.n_fft
 num_mels = _syn_hp.num_mels
-hop_length = 300
-win_length = 1200
+hop_length = _syn_hp.hop_size
+win_length = _syn_hp.win_size
 fmin = _syn_hp.fmin
 min_level_db = _syn_hp.min_level_db
 ref_level_db = _syn_hp.ref_level_db
@@ -26,7 +23,7 @@ mu_law = True                       # Recommended to suppress noise if using raw
 # WAVERNN / VOCODER --------------------------------------------------------------------------------
 voc_mode = 'RAW'                    # either 'RAW' (softmax on raw bits) or 'MOL' (sample from 
 # mixture of logistics)
-voc_upsample_factors = (5, 5, 12)    # NB - this needs to correctly factorise hop_length
+voc_upsample_factors = (5, 5, 8)    # NB - this needs to correctly factorise hop_length
 voc_rnn_dims = 512
 voc_fc_dims = 512
 voc_compute_dims = 128
