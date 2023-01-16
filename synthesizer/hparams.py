@@ -21,12 +21,12 @@ class HParams(object):
 hparams = HParams(
         ### Signal Processing (used in both synthesizer and vocoder)
 
-        n_fft=2048
-        hop_size=300
-        win_size=1200
-        sample_rate=24000
+        n_fft=2048,
+        hop_size=300,
+        win_size=1200,
+        sample_rate=24000,
         # speaker_embedding_size=768
-        voc_upsample_factors=(5, 5, 12)
+        voc_upsample_factors=(5, 5, 12),
         
         # sample_rate = 16000,
         # n_fft = 800,
