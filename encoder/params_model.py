@@ -1,11 +1,11 @@
 
 ## Model parameters
+model_hidden_size = 256
 
-## Default params
-# model_hidden_size = 256
+## Default value
+# model_embedding_size = 256
 
-model_hidden_size = 768
-model_embedding_size = 256
+model_embedding_size = 768
 model_num_layers = 3
 
 
