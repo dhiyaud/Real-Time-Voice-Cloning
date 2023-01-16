@@ -4,7 +4,7 @@ from synthesizer.hparams import hparams as _syn_hp
 # Audio settings------------------------------------------------------------------------
 # Match the values of the synthesizer
 
-speaker_embedding_size = 768
+speaker_embedding_size = 256
 
 sample_rate = 24000
 # n_fft = _syn_hp.n_fft
