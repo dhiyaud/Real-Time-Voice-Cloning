@@ -72,9 +72,12 @@ def run_synthesis(in_dir: Path, out_dir: Path, syn_model_fpath: Path, hparams):
             texts, mels, embeds = texts.to(device), mels.to(device), embeds.to(device)
 
             # Parallelize model onto GPUS using workaround due to python bug
-            if device.type == "cuda" and torch.cuda.device_count() > 1:
-                _, mels_out, _ = data_parallel_workaround(model, texts, mels, embeds)
-            else:
+            # if device.type == "cuda" and torch.cuda.device_count() > 1:
+            #     _, mels_out, _ = data_parallel_workaround(model, texts, mels, embeds)
+            # else:
+            #     _, mels_out, _, _ = model(texts, mels, embeds)
+            
+            if device.type == "cuda":
                 _, mels_out, _, _ = model(texts, mels, embeds)
 
             for j, k in enumerate(idx):
