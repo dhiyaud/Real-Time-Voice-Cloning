@@ -165,9 +165,9 @@ class WaveRNN(nn.Module):
         return self.fc3(x)
 
     # spk_embd, save_path
-    def generate(self, mels, spk_embd, batched, target, overlap, mu_law):
-
+    def generate(self, mels, spk_embd, batched, target, overlap, mu_law, progress_callback=None):
         mu_law = mu_law if self.mode == 'RAW' else False
+        progress_callback = progress_callback or self.gen_display
 
         self.eval()
         output = []
@@ -248,7 +248,9 @@ class WaveRNN(nn.Module):
                 else:
                     raise RuntimeError("Unknown model mode value - ", self.mode)
 
-                if i % 100 == 0 : self.gen_display(i, seq_len, b_size, start)
+                if i % 100 == 0:
+                    self.gen_display(i, seq_len, b_size, start)
+                    progress_callback(i, seq_len, b_size, start)
 
         output = torch.stack(output).transpose(0, 1)
         output = output.cpu().numpy()
