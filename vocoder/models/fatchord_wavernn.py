@@ -89,7 +89,12 @@ class Spk_UpsampleNetwork(nn.Module):
     def forward(self, s_e, dim):
         s = s_e.unsqueeze(dim=1).detach().cpu().numpy()
         s = np.tile(s, (dim,1))
-        s = torch.from_numpy(s).float().to(device)
+
+        if torch.cuda.is_available():
+            s = torch.from_numpy(s).float().cuda()
+        else:
+            s = torch.from_numpy(s).float().cpu()
+
         return s
 
 class WaveRNN(nn.Module):
