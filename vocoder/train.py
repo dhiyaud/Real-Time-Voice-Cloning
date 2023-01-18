@@ -63,7 +63,8 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
         voc_dir.joinpath("synthesized.txt")
     mel_dir = syn_dir.joinpath("mels") if ground_truth else voc_dir.joinpath("mels_gta")
     wav_dir = syn_dir.joinpath("audio")
-    dataset = VocoderDataset(metadata_fpath, mel_dir, wav_dir)
+    embed_dir = syn_dir.joinpath("embeds")
+    dataset = VocoderDataset(metadata_fpath, mel_dir, wav_dir, embed_dir)
     test_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     # Begin the training
