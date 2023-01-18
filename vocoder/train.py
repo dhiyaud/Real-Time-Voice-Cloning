@@ -76,12 +76,12 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
         start = time.time()
         running_loss = 0.
 
-        for i, (x, y, m) in enumerate(data_loader, 1):
+        for i, (x, y, m, s_e) in enumerate(data_loader, 1):
             if torch.cuda.is_available():
-                x, m, y = x.cuda(), m.cuda(), y.cuda()
+                x, m, y, spk_embd = x.cuda(), m.cuda(), y.cuda(), s_e.cuda()
 
             # Forward pass
-            y_hat = model(x, m)
+            y_hat = model(x, m, spk_embd)
             if model.mode == 'RAW':
                 y_hat = y_hat.transpose(1, 2).unsqueeze(-1)
             elif model.mode == 'MOL':
