@@ -14,24 +14,11 @@ SV2TTS is a deep learning framework in three stages. In the first stage, one cre
 | URL | Designation | Title | Implementation source |
 | --- | ----------- | ----- | --------------------- |
 |[**1806.04558**](https://arxiv.org/pdf/1806.04558.pdf) | **SV2TTS** | **Transfer Learning from Speaker Verification to Multispeaker Text-To-Speech Synthesis** | This repo |
+|[1609.03499](https://arxiv.org/pdf/1609.03499.pdf) | WaveNet (vocoder) | A Generative Model for Raw Audio | [r9y9/wavenet_vocoder](https://github.com/r9y9/wavenet_vocoder) |
 |[1802.08435](https://arxiv.org/pdf/1802.08435.pdf) | WaveRNN (vocoder) | Efficient Neural Audio Synthesis | [fatchord/WaveRNN](https://github.com/fatchord/WaveRNN) |
+|[2010.05646](https://arxiv.org/pdf/2010.05646.pdf) | HiFi-GAN (vocoder) | Generative Adversarial Networks for Efficient and High Fidelity | [jik876/hifi-gan](https://github.com/jik876/hifi-gan) |
 |[1703.10135](https://arxiv.org/pdf/1703.10135.pdf) | Tacotron (synthesizer) | Tacotron: Towards End-to-End Speech Synthesis | [fatchord/WaveRNN](https://github.com/fatchord/WaveRNN)
 |[1710.10467](https://arxiv.org/pdf/1710.10467.pdf) | GE2E (encoder)| Generalized End-To-End Loss for Speaker Verification | This repo |
-
-## News
-**08/09/22**: Our team at Resemble.AI is releasing a voice conversion model (closed source), check out my demo [here](https://www.youtube.com/watch?v=f075EOzYKog). 
-
-**10/01/22**: I recommend checking out [CoquiTTS](https://github.com/coqui-ai/tts). It's a good and up-to-date TTS repository targeted for the ML community. It can also do voice cloning and more, such as cross-language cloning or voice conversion.
-
-**28/12/21**: I've done a [major maintenance update](https://github.com/CorentinJ/Real-Time-Voice-Cloning/pull/961). Mostly, I've worked on making setup easier. Find new instructions in the section below.
-
-**14/02/21**: This repo now runs on PyTorch instead of Tensorflow, thanks to the help of @bluefish.
-
-**13/11/19**: I'm now working full time and I will rarely maintain this repo anymore. To anyone who reads this:
-- **If you just want to clone your voice (and not someone else's):** I recommend our free plan on [Resemble.AI](https://www.resemble.ai/). You will get a better voice quality and less prosody errors.
-- **If this is not your case:** proceed with this repository, but you might end up being disappointed by the results. If you're planning to work on a serious project, my strong advice: find another TTS repo. Go [here](https://github.com/CorentinJ/Real-Time-Voice-Cloning/issues/364) for more info.
-
-**20/08/19:** I'm working on [resemblyzer](https://github.com/resemble-ai/Resemblyzer), an independent package for the voice encoder (inference only). You can use your trained encoder models from this repo with it.
 
 
 ## Setup
@@ -53,14 +40,80 @@ Before you download any dataset, you can begin by testing your configuration wit
 
 If all tests pass, you're good to go.
 
-### 4. (Optional) Download Datasets
-For playing with the toolbox alone, I only recommend downloading [`LibriSpeech/train-clean-100`](https://www.openslr.org/resources/12/train-clean-100.tar.gz). Extract the contents as `<datasets_root>/LibriSpeech/train-clean-100` where `<datasets_root>` is a directory of your choosing. Other datasets are supported in the toolbox, see [here](https://github.com/CorentinJ/Real-Time-Voice-Cloning/wiki/Training#datasets). You're free not to download any dataset, but then you will need your own data as audio files or you will have to record it with the toolbox.
 
-### 5. Launch the Toolbox
-You can then try the toolbox:
+## Training
 
-`python demo_toolbox.py -d <datasets_root>`  
-or  
-`python demo_toolbox.py`  
+This is a step-by-step guide for reproducing the training.
 
-depending on whether you downloaded any datasets. If you are running an X-server or if you have the error `Aborted (core dumped)`, see [this issue](https://github.com/CorentinJ/Real-Time-Voice-Cloning/issues/11#issuecomment-504733590).
+### Datasets
+This experiments uses **[VCTK](https://homepages.inf.ed.ac.uk/jyamagis/page3/page58/page58.html)** (used in the SV2TTS paper) and **[UncommonVoice](https://merriekay.com/uncommonvoice/)** (Dysphonia dataset audio).
+
+**[VCTK](https://homepages.inf.ed.ac.uk/jyamagis/page3/page58/page58.html)** data is used in Encoders, Synthesizers, and Vocoders. **[UncommonVoice](https://merriekay.com/uncommonvoice/)** used in Vocoders only.
+
+
+### Preprocessing and training
+Here's the great thing about this repo: you're expected to run all python scripts in their alphabetical order. You likely started with the demo scripts, now you can run the remaining ones (pass `-h` to get argument infos for any script): 
+
+`python encoder_preprocess.py <datasets_root>`
+
+For training, the encoder uses visdom. You can disable it with `--no_visdom`, but it's nice to have. Run "visdom" in a separate CLI/process to start your visdom server. Then run:
+
+`python encoder_train.py my_run <datasets_root>/SV2TTS/encoder`
+
+Then you have two separate scripts to generate the data of the synthesizer. This is convenient in case you want to retrain the encoder, you will then have to regenerate embeddings for the synthesizer.
+
+Begin with the audios and the mel spectrograms:
+
+`python synthesizer_preprocess_audio.py <datasets_root>`
+
+Then the embeddings:
+ 
+`python synthesizer_preprocess_embeds.py <datasets_root>/SV2TTS/synthesizer`
+
+You can then train the synthesizer:
+
+`python synthesizer_train.py my_run <datasets_root>/SV2TTS/synthesizer`
+
+The synthesizer will output generated audios and spectrograms to its model directory when training. 
+
+Use the synthesizer to generate training data for the vocoder:
+
+`python vocoder_preprocess.py <datasets_root>`
+
+And finally, train the vocoder:
+
+`python vocoder_train.py my_run <datasets_root>`
+
+The vocoder also outputs ground truth/generated audios to its model directory.
+ 
+
+## Inference
+
+To run the trained model and cloning voice, you can run cli in terminal with:
+
+`python demo_cli.py --no_sound`
+
+And for Speaker Conditional model, you can run:
+
+`python demo_cli_sc.py --no_sound`
+
+
+## NOTES
+
+A few things to concern
+
+### 1. Change Vocoder
+
+The default vocoder in this repository is WaveRNN.
+
+To use another vocoder (WaveNet, HiFi-GAN), please refer to the `repositories` folder in my root directory.
+
+### 2. Use Speaker Conditional
+
+To use Speaker Conditional for the vocoder, please retrain and use file with suffix `xx_sc.py` inside the vocoder directory.
+
+### 3. HiFI-GAN
+
+To use HiFI-GAN, you will need to retrain the synthesizer model and preprocess data again.
+
+Replace `synthesizer import audio` with `synthesizer import audio_hifigan`, in files `synthesizer/preprocess.py`, `synthesizer/train.py`, and `synthesizer/inference.py`.
