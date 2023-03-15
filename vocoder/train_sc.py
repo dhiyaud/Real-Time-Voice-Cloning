@@ -11,7 +11,7 @@ import vocoder.hparams as hp
 from vocoder.display import stream, simple_table
 from vocoder.distribution import discretized_mix_logistic_loss
 from vocoder.gen_wavernn import gen_testset
-from vocoder.models.fatchord_version import WaveRNN
+from vocoder.models.fatchord_wavernn_sc import WaveRNN
 from vocoder.vocoder_dataset import VocoderDataset, collate_vocoder
 
 
@@ -63,7 +63,8 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
         voc_dir.joinpath("synthesized.txt")
     mel_dir = syn_dir.joinpath("mels") if ground_truth else voc_dir.joinpath("mels_gta")
     wav_dir = syn_dir.joinpath("audio")
-    dataset = VocoderDataset(metadata_fpath, mel_dir, wav_dir)
+    embed_dir = syn_dir.joinpath("embeds")
+    dataset = VocoderDataset(metadata_fpath, mel_dir, wav_dir, embed_dir)
     test_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     # Begin the training
@@ -76,12 +77,12 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
         start = time.time()
         running_loss = 0.
 
-        for i, (x, y, m) in enumerate(data_loader, 1):
+        for i, (x, y, m, s_e) in enumerate(data_loader, 1):
             if torch.cuda.is_available():
-                x, m, y = x.cuda(), m.cuda(), y.cuda()
+                x, m, y, spk_embd = x.cuda(), m.cuda(), y.cuda(), s_e.cuda()
 
             # Forward pass
-            y_hat = model(x, m)
+            y_hat = model(x, m, spk_embd)
             if model.mode == 'RAW':
                 y_hat = y_hat.transpose(1, 2).unsqueeze(-1)
             elif model.mode == 'MOL':

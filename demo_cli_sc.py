@@ -86,6 +86,7 @@ if __name__ == '__main__':
     # Embeddings are L2-normalized (this isn't important here, but if you want to make your own
     # embeddings it will be).
     embed /= np.linalg.norm(embed)
+    spk_embd = torch.tensor(embed).unsqueeze(0)
     # The synthesizer can handle multiple inputs with batching. Let's create another embedding to
     # illustrate that
     embeds = [embed, np.zeros(speaker_embedding_size)]
@@ -106,7 +107,7 @@ if __name__ == '__main__':
     # 0.5 seconds which will all be generated together. The parameters here are absurdly short, and
     # that has a detrimental effect on the quality of the audio. The default parameters are
     # recommended in general.
-    vocoder.infer_waveform(mel, target=200, overlap=50, progress_callback=no_action)
+    vocoder.infer_waveform(mel, spk_embd, target=200, overlap=50, progress_callback=no_action)
 
     print("All test passed! You can now synthesize speech.\n\n")
 
@@ -141,6 +142,7 @@ if __name__ == '__main__':
             # speaker encoder interfaces. These are mostly for in-depth research. You will typically
             # only use this function (with its default parameters):
             embed = encoder.embed_utterance(preprocessed_wav)
+            spk_embd = torch.tensor(embed).unsqueeze(0)
             print("Created the embedding")
 
 
@@ -172,7 +174,7 @@ if __name__ == '__main__':
 
             # Synthesizing the waveform is fairly straightforward. Remember that the longer the
             # spectrogram, the more time-efficient the vocoder.
-            generated_wav = vocoder.infer_waveform(spec)
+            generated_wav = vocoder.infer_waveform(spec, spk_embd)
 
 
             ## Post-generation
